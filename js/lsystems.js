@@ -5,6 +5,8 @@ window.onload = function() {
 
 console.log("test");
 
+angle = 0;
+
 function parseRuleset(string) {
     var next = "";
     for(var i = 0; i < string.length; ++i) {
@@ -12,12 +14,12 @@ function parseRuleset(string) {
         
         // Begin Rulset ParMath.sing
         switch(c) {
-            case "A": {
-                next += "AA";
+            case "X": {
+                next += "F-[[X]+X]+F[+FX]-X";
             } break;
 
-            case "B": {
-                next += "A[B]B";
+            case "F": {
+                next += "FF";
             } break;
 
             default: {
@@ -31,23 +33,38 @@ function parseRuleset(string) {
 
 function main(ctx) {
 
-    var s = "B";
-    for(var i = 0; i < 8; ++i) {
-        console.log("I: " + i + " " + s);
+    s = "X";
+    for(var i = 0; i < 6; ++i) {
+        console.log("I: " + i + " ");
         s = parseRuleset(s);
     }
     
     console.log(s);
+    
+    //drawSystem(ctx, s);
 
-    drawSystem(ctx, s);
+    animate(ctx);
 }
 
-function drawSystem(ctx, string) {
+function animate(ctx) {
+
+    ctx.clearRect(0,0,1000,1000);
+    if(angle < 30) {
+        angle += 1.0;
+    }
+    console.log(angle);
+    // Draw
+    drawSystem(ctx, s, angle);
+
+    window.requestAnimationFrame(function(){animate(ctx);});
+}
+
+function drawSystem(ctx, string, angle) {
     // Code Here
     var stack = [];
     var pos, rot;
-    pos = [0, 200];
-    rot = 0;
+    pos = [500, 500];
+    rot = -Math.PI/2;
 
     var radius = 2;
     for(var i = 0; i < string.length; ++i) {
@@ -57,8 +74,15 @@ function drawSystem(ctx, string) {
         ctx.beginPath();
 
         switch(c) {
-            case "B":
-            case "A": {
+            case "+": {
+                rot += -angle * Math.PI / 180;
+            } break;
+
+            case "-": {
+                rot += angle * Math.PI / 180;
+            } break;
+
+            case "F": {
                 // Same as A
                 // Get the value off the top of the stack
                 ctx.moveTo(pos[0], pos[1]);
@@ -71,8 +95,6 @@ function drawSystem(ctx, string) {
 
             case "[": {
                 stack.push({"pos":{x: pos[0], y: pos[1]}, "rot":rot});
-                rot += 45 * Math.PI / 180;
-                // Push [pos&angle] turn left 45deg
             } break;
 
             case "]": {
@@ -80,8 +102,6 @@ function drawSystem(ctx, string) {
                 pos[0] = dump.pos.x;
                 pos[1] = dump.pos.y;
                 rot = dump.rot;
-                rot += -45 * Math.PI / 180;
-                // Pop [pos&angle] turn right 45deg
             } break;
         }
 
