@@ -15,7 +15,7 @@ function parseRuleset(string) {
         // Begin Rulset ParMath.sing
         switch(c) {
             case "X": {
-                next += "F-[[X]+X]+F[+FX]-X";
+                next += "F-[[X]+X]+[+FX][++FX][-FX]";
             } break;
 
             case "F": {
