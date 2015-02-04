@@ -5,7 +5,7 @@ window.onload = function() {
 
 console.log("test");
 
-angle = 0;
+angle = 20;
 
 function parseRuleset(string) {
     var next = "";
@@ -15,11 +15,23 @@ function parseRuleset(string) {
         // Begin Rulset ParMath.sing
         switch(c) {
             case "X": {
-                next += "F-[[X]+X]+[+FX][++FX][-FX]";
+                next += "F(0.23)-[[X]+X]+[+F(2.2)X][++F(1.7)X][-F(" + Math.random() + ")X]";
             } break;
 
             case "F": {
-                next += "FF";
+                ++i;
+                var str = string.substring(++i);
+                str = str.split(")")[0];
+
+                for(var j = 0; j < str.length; ++j) {
+                    ++i;
+                }
+
+                var plus = "";
+//                for(var j = 0; j < Math.floor((str+1)/100); ++j) {
+//                    plus += "+";
+//                }
+                next += "F(" + (str * Math.random()) + ")F(1.5)" + plus;
             } break;
 
             default: {
@@ -34,7 +46,7 @@ function parseRuleset(string) {
 function main(ctx) {
 
     s = "X";
-    for(var i = 0; i < 6; ++i) {
+    for(var i = 0; i < 5; ++i) {
         console.log("I: " + i + " ");
         s = parseRuleset(s);
     }
@@ -49,10 +61,7 @@ function main(ctx) {
 function animate(ctx) {
 
     ctx.clearRect(0,0,1000,1000);
-    if(angle < 30) {
-        angle += 1.0;
-    }
-    console.log(angle);
+
     // Draw
     drawSystem(ctx, s, angle);
 
@@ -83,12 +92,20 @@ function drawSystem(ctx, string, angle) {
             } break;
 
             case "F": {
+                ++i;
+                var str = string.substring(++i);
+                str = str.split(")")[0];
+
+                for(var j = 0; j < str.length; ++j) {
+                    ++i;
+                }
+
                 // Same as A
                 // Get the value off the top of the stack
                 ctx.moveTo(pos[0], pos[1]);
 
-                pos[0] += radius * Math.cos(rot);
-                pos[1] += radius * Math.sin(rot);
+                pos[0] += radius * Math.cos(rot) * (str + 0);
+                pos[1] += radius * Math.sin(rot) * (str + 0);
 
                 ctx.lineTo(pos[0], pos[1]);
             } break;
