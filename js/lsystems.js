@@ -13,8 +13,12 @@ function parseRuleset(string) {
         
         // Begin Rulset ParMath.sing
         switch(c) {
+            case "X": {
+                next += "F[+X]-X";
+            } break;
+
             case "F": {
-                next += "F+F-F-F+F<";
+                next += "FF";
             } break;
 
             default: {
@@ -28,7 +32,7 @@ function parseRuleset(string) {
 
 function main(ctx) {
 
-    s = "F";
+    s = "X";
     for(var i = 0; i <4; ++i) {
         console.log("I: " + i + " ");
         s = parseRuleset(s);
@@ -55,7 +59,7 @@ function drawSystem(string) {
         new THREE.MeshLambertMaterial(),
         new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: true, transparent: true, opacity: 0.1 } )
     ];
-
+    leafMat = new THREE.MeshBasicMaterial({color:0x007700});
                 var radius = 50;
                 var length = 250;
                 var points = [];
@@ -63,42 +67,44 @@ function drawSystem(string) {
                     points.push(new THREE.Vector3(radius * Math.cos(i), 0, radius * Math.sin(i)));
                     points.push(new THREE.Vector3(radius * Math.cos(i), length, radius * Math.sin(i)));
                 }
-    object = THREE.SceneUtils.createMultiMaterialObject( new THREE.ConvexGeometry( points ), materials );
-    object.position.set( 0, 250, 0);
-    group.add(object);
-    for(var idx = 0; idx < string.length - 1; ++idx) {
+        var stack = [];
+    var rot = object.rotation;
+    for(var idx = 0; idx < string.length; ++idx) {
+    //rot = new THREE.Euler()
+    //rot.set(0,0,0);
         // Follow Current Draw Instruction
         var c = string.charAt(idx);
 
+    console.log(idx + " " + c);
         switch(c) {
             case "+": {
                 // corner piece + rotation
-                object.rotation.x += Math.PI / 2;
+                rot.x += Math.PI / 4;
             } break;
 
             case "-": {
                 // corner piece + rotation
-                object.rotation.x += -Math.PI / 2;
+                rot.x += -Math.PI / 4;
             } break;
 
             case "^": {
                 // corner piece + rotation
-                object.rotation.y += Math.PI / 2;
+                rot.y += Math.PI / 4;
             } break;
 
             case "&": {
                 // corner piece + rotation
-                object.rotation.y += -Math.PI / 2;
+                rot.y += -Math.PI / 4;
             } break;
 
             case ">": {
                 // corner piece + rotation
-                object.rotation.z += Math.PI / 2;
+                rot.z += Math.PI / 4;
             } break;
 
             case "<": {
                 // corner piece + rotation
-                object.rotation.z += -Math.PI / 2;
+                rot.z += -Math.PI / 4;
             } break;
 
 
@@ -107,11 +113,29 @@ function drawSystem(string) {
                 parentObj = object;
                 object = THREE.SceneUtils.createMultiMaterialObject( new THREE.ConvexGeometry( points ), materials );
                 object.position.set( 0, 250, 0);
+                object.rotation.copy(rot);
                 parentObj.add(object);
+                rot = new THREE.Euler()
+            } break;
+
+            case "X": {
+                leaf = new THREE.Mesh(new THREE.ConvexGeometry(points), leafMat);
+                leaf.position.set(0, 250, 0);
+                leaf.rotation.copy(rot);
+                object.add(leaf);
+                rot = new THREE.Euler()
+            } break;
+
+            case "[": {
+                stack.push({"object":object, "rot":rot});
+            } break;
+
+            case "]": {
+                dump = stack.pop();
+                object = dump.object;
             } break;
         }
     }
-
     return group;
 }
 
