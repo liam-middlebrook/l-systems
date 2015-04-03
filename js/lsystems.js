@@ -13,8 +13,8 @@ function parseRuleset(string) {
         
         // Begin Rulset ParMath.sing
         switch(c) {
-            case "X": {
-                next += "X+X-X-X+X";
+            case "F": {
+                next += "F+F-F-F+F<";
             } break;
 
             default: {
@@ -28,8 +28,8 @@ function parseRuleset(string) {
 
 function main(ctx) {
 
-    s = "X";
-    for(var i = 0; i < 3; ++i) {
+    s = "F";
+    for(var i = 0; i <4; ++i) {
         console.log("I: " + i + " ");
         s = parseRuleset(s);
     }
@@ -73,17 +73,36 @@ function drawSystem(string) {
         switch(c) {
             case "+": {
                 // corner piece + rotation
-                console.log("rotate+");
                 object.rotation.x += Math.PI / 2;
             } break;
 
             case "-": {
                 // corner piece + rotation
-                console.log("rotate-");
                 object.rotation.x += -Math.PI / 2;
             } break;
 
-            case "X": {
+            case "^": {
+                // corner piece + rotation
+                object.rotation.y += Math.PI / 2;
+            } break;
+
+            case "&": {
+                // corner piece + rotation
+                object.rotation.y += -Math.PI / 2;
+            } break;
+
+            case ">": {
+                // corner piece + rotation
+                object.rotation.z += Math.PI / 2;
+            } break;
+
+            case "<": {
+                // corner piece + rotation
+                object.rotation.z += -Math.PI / 2;
+            } break;
+
+
+            case "F": {
                 // straight line
                 parentObj = object;
                 object = THREE.SceneUtils.createMultiMaterialObject( new THREE.ConvexGeometry( points ), materials );
@@ -102,7 +121,7 @@ function init(str) {
     document.body.appendChild( container );
 
     camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 200000 );
-    camera.position.y = 4000;
+    camera.position.y = 2500;
 
     scene = new THREE.Scene();
 
@@ -151,8 +170,8 @@ function render() {
 
     var timer = Date.now() * 0.0001;
 
-    //camera.position.x = Math.cos( timer ) * 800;
-    //camera.position.z = Math.sin( timer ) * 800;
+    camera.position.x = Math.cos( timer ) * 800;
+    camera.position.z = Math.sin( timer ) * 800;
 
     camera.lookAt( scene.position );
 
