@@ -1,6 +1,5 @@
 window.onload = function() {
-    var ctx = document.getElementById("canvas").getContext("2d");
-    main(ctx);
+    main();
     }
 
 console.log("test");
@@ -15,23 +14,7 @@ function parseRuleset(string) {
         // Begin Rulset ParMath.sing
         switch(c) {
             case "X": {
-                next += "F(0.23)-[[X]+X]+[+F(2.2)X][++F(1.7)X][-F(" + Math.random() + ")X]";
-            } break;
-
-            case "F": {
-                ++i;
-                var str = string.substring(++i);
-                str = str.split(")")[0];
-
-                for(var j = 0; j < str.length; ++j) {
-                    ++i;
-                }
-
-                var plus = "";
-//                for(var j = 0; j < Math.floor((str+1)/100); ++j) {
-//                    plus += "+";
-//                }
-                next += "F(" + (str * Math.random()) + ")F(1.5)" + plus;
+                next += "X+X-X-X+X";
             } break;
 
             default: {
@@ -46,7 +29,7 @@ function parseRuleset(string) {
 function main(ctx) {
 
     s = "X";
-    for(var i = 0; i < 5; ++i) {
+    for(var i = 0; i < 3; ++i) {
         console.log("I: " + i + " ");
         s = parseRuleset(s);
     }
@@ -55,73 +38,133 @@ function main(ctx) {
     
     //drawSystem(ctx, s);
 
-    animate(ctx);
+    var container;
+
+    var camera, scene, renderer;
+
+    init(s);
+    animate();
+
 }
 
-function animate(ctx) {
+function drawSystem(string) {
+    // Code Herep
+    var object = new THREE.Group();
+    var group = object;
+    materials = [
+        new THREE.MeshLambertMaterial(),
+        new THREE.MeshBasicMaterial( { color: 0xffffff, wireframe: true, transparent: true, opacity: 0.1 } )
+    ];
 
-    ctx.clearRect(0,0,1000,1000);
-
-    // Draw
-    drawSystem(ctx, s, angle);
-
-    window.requestAnimationFrame(function(){animate(ctx);});
-}
-
-function drawSystem(ctx, string, angle) {
-    // Code Here
-    var stack = [];
-    var pos, rot;
-    pos = [500, 500];
-    rot = -Math.PI/2;
-
-    var radius = 2;
-    for(var i = 0; i < string.length; ++i) {
+                var radius = 50;
+                var length = 250;
+                var points = [];
+                for(var i = 0; i < Math.PI * 2; i += Math.PI/4.0) {
+                    points.push(new THREE.Vector3(radius * Math.cos(i), 0, radius * Math.sin(i)));
+                    points.push(new THREE.Vector3(radius * Math.cos(i), length, radius * Math.sin(i)));
+                }
+    object = THREE.SceneUtils.createMultiMaterialObject( new THREE.ConvexGeometry( points ), materials );
+    object.position.set( 0, 250, 0);
+    group.add(object);
+    for(var idx = 0; idx < string.length - 1; ++idx) {
         // Follow Current Draw Instruction
-        var c = string.charAt(i);
-
-        ctx.beginPath();
+        var c = string.charAt(idx);
 
         switch(c) {
             case "+": {
-                rot += -angle * Math.PI / 180;
+                // corner piece + rotation
+                console.log("rotate+");
+                object.rotation.x += Math.PI / 2;
             } break;
 
             case "-": {
-                rot += angle * Math.PI / 180;
+                // corner piece + rotation
+                console.log("rotate-");
+                object.rotation.x += -Math.PI / 2;
             } break;
 
-            case "F": {
-                ++i;
-                var str = string.substring(++i);
-                str = str.split(")")[0];
-
-                for(var j = 0; j < str.length; ++j) {
-                    ++i;
-                }
-
-                // Same as A
-                // Get the value off the top of the stack
-                ctx.moveTo(pos[0], pos[1]);
-
-                pos[0] += radius * Math.cos(rot) * (str + 0);
-                pos[1] += radius * Math.sin(rot) * (str + 0);
-
-                ctx.lineTo(pos[0], pos[1]);
-            } break;
-
-            case "[": {
-                stack.push({"pos":{x: pos[0], y: pos[1]}, "rot":rot});
-            } break;
-
-            case "]": {
-                var dump = stack.pop();
-                pos[0] = dump.pos.x;
-                pos[1] = dump.pos.y;
-                rot = dump.rot;
+            case "X": {
+                // straight line
+                parentObj = object;
+                object = THREE.SceneUtils.createMultiMaterialObject( new THREE.ConvexGeometry( points ), materials );
+                object.position.set( 0, 250, 0);
+                parentObj.add(object);
             } break;
         }
-
-        ctx.stroke();
     }
+
+    return group;
+}
+
+function init(str) {
+
+    container = document.createElement( 'div' );
+    document.body.appendChild( container );
+
+    camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 200000 );
+    camera.position.y = 4000;
+
+    scene = new THREE.Scene();
+
+    var light, object, materials;
+
+    scene.add( new THREE.AmbientLight( 0x404040 ) );
+
+    light = new THREE.DirectionalLight( 0xffffff );
+    light.position.set( 0, 1, 0 );
+    scene.add( light );
+
+
+
+    // tetrahedron
+
+    scene.add( drawSystem(str) );
+
+    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    container.appendChild( renderer.domElement );
+
+    //
+
+    window.addEventListener( 'resize', onWindowResize, false );
+
+}
+
+function onWindowResize() {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+
+}
+
+function animate() {
+
+    requestAnimationFrame( animate );
+
+    render();
+}
+
+function render() {
+
+    var timer = Date.now() * 0.0001;
+
+    //camera.position.x = Math.cos( timer ) * 800;
+    //camera.position.z = Math.sin( timer ) * 800;
+
+    camera.lookAt( scene.position );
+
+    for ( var i = 0, l = scene.children.length; i < l; i ++ ) {
+
+        var object = scene.children[ i ];
+
+        //object.rotation.x = timer * 5;
+        object.rotation.z = Math.PI / 2;
+    }
+
+    object.position.x = 1000;
+    renderer.render( scene, camera );
+
 }
